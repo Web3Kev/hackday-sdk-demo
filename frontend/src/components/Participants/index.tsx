@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback, memo } from "react";
-import { Flex } from "@chakra-ui/react";
+import { useMemo } from "react";
+import { Center, Flex, Box } from "@chakra-ui/react";
 import { motion, AnimatePresence, usePresence } from "framer-motion";
 
-import { RoomConnectionRef, GameState } from "../../useQuizGame";
-
+import { RoomConnectionRef, GameState, LocalMediaRef } from "../../useQuizGame";
+import DeviceControls from "../../components/DeviceControls";
 import VideoTile from "../VideoTile";
+import { useLocalMedia } from "@whereby.com/browser-sdk";
 
 interface ParticipantsProps {
   roomConnection: RoomConnectionRef;
   quizState: GameState;
+  isQuizMaster?:boolean;
   variant?: "default" | "small";
   screen?: "scoreboard" | "game";
 }
@@ -18,6 +21,7 @@ const SORTING_TIMEOUT = 4500;
 const Participants = ({
   roomConnection,
   quizState,
+  isQuizMaster = false,
   variant = "default",
   screen = "game",
 }: ParticipantsProps) => {
@@ -29,6 +33,11 @@ const Participants = ({
   const [roundResults, setRoundResults] = useState<{
     [participantId: string]: "correct" | "incorrect" | "no_vote";
   }>({});
+
+  const localMedia = useLocalMedia({ audio: true, video: true });
+
+  const { localStream } = localMedia.state;
+  const { toggleCameraEnabled, toggleMicrophoneEnabled } = localMedia.actions;
 
   const { revealAnswers, currentAnswers, currentQuestion, scores } = quizState;
   // TODO: fix currentAnswers interface
@@ -133,7 +142,70 @@ const Participants = ({
     onAnimationComplete: () => !isPresent && safeToRemove(),
   };
 
+
+  const [videoIdPermission, setVideoIdPermission] = useState({});
+
+  const [audioIdPermission, setAudioIdPermission] = useState({});
+
+  const [spotLightIds, setSpotLightIds] = useState({});
+
+  const updatePermittedVideos = (id, permission) => {
+    // Update the dictionary with the new value for the given participant ID
+    setVideoIdPermission(prev => ({ ...prev, [id]: permission }));
+
+    setVideoIdPermission(prev => ({
+      ...prev,
+      [id]: prev.hasOwnProperty(id) ? permission : false
+    }));
+  };
+
+  const updatePermittedAudios = (id, permission) => {
+    // Update the dictionary with the new value for the given participant ID
+    setAudioIdPermission(prev => ({ ...prev, [id]: permission }));
+
+    setAudioIdPermission(prev => ({
+      ...prev,
+      [id]: prev.hasOwnProperty(id) ? permission : false
+    }));
+  };
+
+  const updateSpotlights = (id, spotStatus) => {
+    // Update the dictionary with the new value for the given participant ID
+    setSpotLightIds(prev => ({ ...prev, [id]: spotStatus }));
+
+    setSpotLightIds(prev => ({
+      ...prev,
+      [id]: prev.hasOwnProperty(id) ? spotStatus : false
+    }));
+  };
+
+  const trueVidIds = useMemo(() => 
+    Object.entries(videoIdPermission)
+      .filter(([id, value]) => value === true)
+      .map(([id]) => id),
+    [videoIdPermission]
+  );
+
+  const trueAudIds = useMemo(() => 
+  Object.entries(audioIdPermission)
+      .filter(([id, value]) => value === true)
+      .map(([id]) => id),
+    [audioIdPermission]
+  );
+
+  const trueSpotIds = useMemo(() => 
+    Object.entries(spotLightIds)
+      .filter(([id, value]) => value === true)
+      .map(([id]) => id),
+    [spotLightIds]
+  );
+
   return (
+    <Box
+      h="100%"
+      textAlign="center"
+      overflow="hidden"
+    >
     <Flex gap="4">
       <Flex
         flexDir={screen === "scoreboard" ? "column" : "row"}
@@ -156,6 +228,10 @@ const Participants = ({
                   hasAnswered={hasParticipantAnswered}
                   roundResult={roundResults[id]}
                   variant={tileSizeVariant}
+                  isMaster={isQuizMaster}
+                  changeAudioPermission={updatePermittedAudios}
+                  changeVideoPermission={updatePermittedVideos}
+                  changeSpotlightStatus={updateSpotlights}
                 />
               </motion.div>
             );
@@ -163,7 +239,20 @@ const Participants = ({
         </AnimatePresence>
       </Flex>
     </Flex>
+    <Center>
+    {localStream && (
+        <DeviceControls
+          floating={true}
+          toggleCameraEnabled={toggleCameraEnabled}
+          toggleMicrophoneEnabled={toggleMicrophoneEnabled}
+          localStream={localStream}
+        />
+      )}
+    </Center>
+    </Box>
   );
 };
 
 export default memo(Participants);
+
+

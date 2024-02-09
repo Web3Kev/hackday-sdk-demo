@@ -10,7 +10,7 @@ import QuestionView from "../QuestionView";
 import Scoreboard from "../Scoreboard";
 
 interface GameProps {
-  localMedia: LocalMediaRef;
+  // localMedia: LocalMediaRef;
   displayName: string;
   roomUrl: string;
 }
@@ -18,9 +18,11 @@ interface GameProps {
 const urlParams = new URLSearchParams(window.location.search);
 const isQuizMaster = !!urlParams.get("quizMaster");
 
-const Game = ({ localMedia, displayName, roomUrl }: GameProps) => {
+
+//takes in the props (parameters localMEdia, displayname and url)
+const Game = ({ displayName, roomUrl }: GameProps) => { //localMedia, 
   const roomConnection = useRoomConnection(roomUrl, {
-    localMedia,
+    // localMedia,
     displayName,
     logger: console,
   });
@@ -28,18 +30,24 @@ const Game = ({ localMedia, displayName, roomUrl }: GameProps) => {
   const { state: roomState } = roomConnection;
   const { remoteParticipants, localParticipant } = roomState;
 
+  //pass this to useQuiGame logic
   const { state: quizState, actions: quizActions } = useQuizGame(
     roomConnection,
     { isQuizMaster }
   );
 
+    //states get
   const { screen, currentQuestion, revealAnswers: shouldReveal } = quizState;
+    //actions set
   const { postAnswer, nextQuestion, revealAnswers } = quizActions;
 
+  //useMemo uses cache to return stuff if no change ... saves on compute
   const quizCurrentAnswer = useMemo(() => {
-    const answers = quizState.currentAnswers || {};
+    const answers = quizState.currentAnswers || {}; //get all answers
     const pid = localParticipant?.id || "unknown";
-    return answers[pid];
+
+    console.log("anserlocal :" +answers[pid]);
+    return answers[pid]; //return answer for localparticipant
   }, [localParticipant?.id, quizState.currentAnswers]);
 
   let currentScreen: any = null;
@@ -82,12 +90,12 @@ const Game = ({ localMedia, displayName, roomUrl }: GameProps) => {
 
   return (
     <Flex flexDirection="column" height="100%" gap={["4", null]}>
-      <Box flexGrow={[1, null, 3]}>{currentScreen}</Box>
-      {screen !== "end" && (
+      {/* <Box flexGrow={[1, null, 3]}>{currentScreen}</Box> */}
+      {/* {screen !== "end" && ( */}
         <Box flexGrow="2" p="4" background="whiteAlpha.500">
-          <Participants roomConnection={roomConnection} quizState={quizState} />
+          <Participants roomConnection={roomConnection} quizState={quizState}  isQuizMaster={isQuizMaster}/>
         </Box>
-      )}
+      {/* )} */}
     </Flex>
   );
 };

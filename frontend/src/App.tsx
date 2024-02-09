@@ -1,56 +1,46 @@
 import { useState } from "react";
-import { Box } from "@chakra-ui/react";
-import { useLocalMedia } from "@whereby.com/browser-sdk";
+import { Box, Flex } from "@chakra-ui/react";
 
-import PreCallView from "./views/PreCallView";
-import Game from "./views/Game";
+import Home from "./views/Home";
 
 import background from "./assets/background.svg";
-import DeviceControls from "./components/DeviceControls";
 
 function App({ roomUrl }: { roomUrl: string }) {
-  const [isConnected, setIsConnected] = useState(false);
-  const [displayName, setDisplayName] = useState("");
-  const localMedia = useLocalMedia({ audio: true, video: true });
 
-  const { localStream } = localMedia.state;
-  const { toggleCameraEnabled, toggleMicrophoneEnabled } = localMedia.actions;
+  const urlParams = new URLSearchParams(window.location.search);
+  const playerName = urlParams.get("fname") || "guest";
+
+  const [isConnected, setIsConnected] = useState(true);
 
   return (
-    <Box
+    // <Box
+    //   h="100%"
+    //   w="100%" //added
+    //   display="flex" //added
+    //   textAlign="center"
+    //   // overflow="hidden" //added
+    //   backgroundImage={`url(${background})`}
+    //   backgroundPosition="center"
+    //   backgroundSize="cover"
+    //   backgroundRepeat="no-repeat"
+    // >
+    //same as App style
+    <Flex
       h="100%"
+      w="100%" //added
+      display="flex" //added
       textAlign="center"
-      overflow="hidden"
-      backgroundImage={`url(${background})`}
-      backgroundPosition="center"
-      backgroundSize="cover"
-      backgroundRepeat="no-repeat"
+      backgroundColor="teal.800"
     >
-      {!isConnected ? (
-        <PreCallView
-          localMedia={localMedia}
-          handleOnReady={(displayName) => {
-            setDisplayName(displayName);
-            setIsConnected(true);
-          }}
-        />
-      ) : (
-        <Game
+      {isConnected ? (
+        <Home
           roomUrl={roomUrl}
-          localMedia={localMedia}
-          displayName={displayName}
+          // localMedia={localMedia}
+          displayName={playerName}
         />
-      )}
-
-      {localStream && (
-        <DeviceControls
-          floating={isConnected}
-          toggleCameraEnabled={toggleCameraEnabled}
-          toggleMicrophoneEnabled={toggleMicrophoneEnabled}
-          localStream={localStream}
-        />
-      )}
-    </Box>
+      ):null}
+    </Flex>
+    // </Box>
   );
 }
 

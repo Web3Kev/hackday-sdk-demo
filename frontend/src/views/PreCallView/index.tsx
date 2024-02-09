@@ -62,7 +62,7 @@ const PreCallView = ({ localMedia, handleOnReady }: PreCallViewProps) => {
       <Box w="50%" my={4} margin="0 auto">
         {hasInitialized ? (
           <>
-            <VideoTile muted stream={localStream} />
+            {/* <VideoTile muted stream={localStream} /> */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();

@@ -6,6 +6,8 @@ interface DeviceControlProps {
   floating?: boolean;
   localStream: MediaStream;
   style?: React.CSSProperties;
+  videoAllowed?: boolean;
+  audioAllowed?: boolean;
   toggleCameraEnabled: () => void;
   toggleMicrophoneEnabled: () => void;
 }
@@ -14,6 +16,8 @@ export default function DeviceControls({
   floating,
   localStream,
   style,
+  videoAllowed=true,
+  audioAllowed=true,
   toggleCameraEnabled,
   toggleMicrophoneEnabled,
 }: DeviceControlProps) {
@@ -34,7 +38,7 @@ export default function DeviceControls({
 
   return (
     <Box pb={"4"} {...styles} style={style}>
-      {cameraTrack && (
+      {cameraTrack && videoAllowed && (
         <IconButton
           colorScheme={!cameraTrack.enabled ? "red" : undefined}
           size={"lg"}
@@ -47,7 +51,7 @@ export default function DeviceControls({
           }}
         />
       )}
-      {microphoneTrack && (
+      {microphoneTrack && audioAllowed &&(
         <IconButton
           colorScheme={!microphoneTrack.enabled ? "red" : undefined}
           size={"lg"}

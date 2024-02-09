@@ -1,18 +1,28 @@
 import { useEffect, useCallback, useMemo } from "react";
 import { motion, useAnimate } from "framer-motion";
-import { Box, Avatar, AvatarBadge, Text, Center } from "@chakra-ui/react";
+import { Box, Avatar, AvatarBadge, Text, Center, Alert, IconButton, Icon } from "@chakra-ui/react";
 import { VideoView } from "@whereby.com/browser-sdk";
+
+import { IoVideocam,IoVideocamOff,IoMic,IoMicOff,IoStar,IoStarOutline } from "react-icons/io5";
 
 import "./styles.css";
 
 interface VideoTileProps {
   muted?: boolean;
+  showMuted?:boolean;
   id?: string;
-  name?: string;
+  name: string;
   stream: MediaStream | undefined;
-  hasAnswered?: boolean;
-  roundResult?: "correct" | "incorrect" | "no_vote" | null;
+  hasAnswered?: boolean;  // delete this
+  roundResult?: "correct" | "incorrect" | "no_vote" | null;  // delete this
   variant?: "default" | "small";
+  audioAllowed?: boolean;  // admin only
+  videoAllowed?:boolean; // admin only
+  spotlit?:boolean;  // admin only
+  changeAudioPermission: (string,boolean) => void; // admin only
+  changeVideoPermission: (string,boolean) => void; // admin only
+  changeSpotlightStatus: (string,boolean) => void; // admin only
+  isMaster?:boolean; 
 }
 
 const ChakraBox = motion(Box);
@@ -21,10 +31,18 @@ const VideoTile = ({
   id,
   name,
   stream,
-  hasAnswered,
-  roundResult,
+  hasAnswered, // delete this 
+  roundResult, // delete this
   muted,
+  showMuted =false,
   variant = "default",
+  audioAllowed = true, // admin only
+  videoAllowed = true, // admin only
+  spotlit = false, // admin only
+  changeAudioPermission, // admin only
+  changeVideoPermission, // admin only
+  changeSpotlightStatus, // admin only
+  isMaster=false,
 }: VideoTileProps) => {
   const [scope, animate] = useAnimate();
 
@@ -119,13 +137,19 @@ const VideoTile = ({
         },
       }}
     >
+     
+      <Text>{name}</Text>
+      <Box
+      h={tileSize}
+      w={tileSize}
+      >
       <Center
         h={tileSize}
         w={tileSize}
         background="gray.200"
-        borderRadius="16px"
+        borderRadius="50%"
         borderColor={borderColor}
-        borderWidth={hasAnswered ? "8px" : "0px"}
+        borderWidth={hasAnswered ? "10px" : "0px"} // use this for local and for spotlight 
         overflow="hidden"
       >
         {stream ? (
@@ -144,7 +168,50 @@ const VideoTile = ({
           </Avatar>
         )}
       </Center>
-      <Text>{name}</Text>
+      {/* Icon overlay in the bottom-right corner */}
+      {showMuted?(<Icon as={IoMicOff} position="relative" zIndex="1" bottom={`${parseInt(tileSize[0], 10) * 1.1}px`} right="0" color="red.500" boxSize={`${parseInt(tileSize[0], 10) * 1.1}px`} />):null}
+      </Box>
+
+      {isMaster?(
+      <ChakraBox
+      display="flex"
+      flexDirection="row"
+      alignItems="center"
+      margin="2">
+        {/* <IoVideocam /> <IoVideocamOff /><IoMic /><IoMicOff /><IoStar /><IoStarOutline /> */}
+        {<IconButton
+          colorScheme={!videoAllowed ? "red" : "green"}
+          size={"lg"}
+          mr={"2"}
+          aria-label="Video"
+          icon={videoAllowed? <IoVideocam /> :<IoVideocamOff /> }
+          onClick={() => {
+            changeVideoPermission(id,!videoAllowed);
+          }}
+        />}
+        {<IconButton
+          colorScheme={!audioAllowed ? "red" : "green"}
+          size={"lg"}
+          mr={"2"}
+          aria-label="Audio"
+          icon={audioAllowed? <IoMic /> :<IoMicOff /> }
+          onClick={() => {
+            changeAudioPermission(id,!audioAllowed);
+            console.log("clicked audio for "+id+ "set to "+!audioAllowed);
+          }}
+        />}
+        {<IconButton
+          colorScheme={!spotlit ? undefined : "blue"}
+          size={"lg"}
+          mr={"2"}
+          aria-label="Spotlight"
+          icon={spotlit? <IoStar /> :<IoStarOutline /> }
+          onClick={() => {
+            changeSpotlightStatus(id,!spotlit);
+          }}
+        />}
+      </ChakraBox>):null}
+      
     </ChakraBox>
   );
 };
