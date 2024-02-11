@@ -13,7 +13,7 @@ export type LocalMediaRef = ReturnType<typeof useLocalMedia>;
 
 
 export interface ComState {
-  isQuizMaster: boolean;
+  isTeacher: boolean;
 
   videoNotAllowedIds: string [];
 
@@ -21,7 +21,7 @@ export interface ComState {
 
   spotLitIds: string [] | null;
 
-  currentIframe: string | null;
+  currentIframe: string;
 
   AllAudioOff:boolean;
 }
@@ -71,11 +71,11 @@ export interface ComActions {
 
 
 const initialState: ComState = {
-    isQuizMaster: false,
+  isTeacher: false,
     videoNotAllowedIds: [],
     audioNotAllowedIds: [],
     spotLitIds: [],
-    currentIframe: null,  
+    currentIframe: "https://example.com",  
     AllAudioOff:false,
 };
 
@@ -128,14 +128,14 @@ function reducer(state: ComState, event: ComEvents): ComState {
 
 export default function useComControl(
   roomConnection: RoomConnectionRef,
-  { isQuizMaster }: { isQuizMaster: boolean }
+  { isTeacher }: { isTeacher: boolean }
 ): {
   state: ComState;
   actions: ComActions;
 } {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
-    isQuizMaster,
+    isTeacher,
   });
   const { state: roomState, actions: roomActions } = roomConnection;
 
@@ -158,7 +158,7 @@ export default function useComControl(
     state,
     actions: {
       disableAudio(ids: string []) {
-        if (!state.isQuizMaster) {
+        if (!state.isTeacher) {
             console.warn("Not authorized to disable audios");
             return;
           }
@@ -171,7 +171,7 @@ export default function useComControl(
           );
       },
       disableVideo(ids: string []) {
-        if (!state.isQuizMaster) {
+        if (!state.isTeacher) {
             console.warn("Not authorized to disable videos");
             return;
           }
@@ -183,7 +183,7 @@ export default function useComControl(
           );
       },
       muteAll(muteState: boolean) {
-        if (!state.isQuizMaster) {
+        if (!state.isTeacher) {
             console.warn("Not authorized to mute all");
             return;
           }
@@ -195,7 +195,7 @@ export default function useComControl(
       },
       setSpotlight(ids: string []) {
        
-        if (!state.isQuizMaster) {
+        if (!state.isTeacher) {
             console.warn("Not authorized to set Spotlight");
             return;
           }
@@ -209,7 +209,7 @@ export default function useComControl(
       },
       setIframe(url: string) {
        
-        if (!state.isQuizMaster) {
+        if (!state.isTeacher) {
             console.warn("Not authorized to set Iframe");
             return;
           }

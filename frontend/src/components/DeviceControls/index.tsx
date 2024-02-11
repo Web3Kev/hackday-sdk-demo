@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FiMic, FiVideo, FiVideoOff, FiMicOff } from "react-icons/fi";
 
 interface DeviceControlProps {
+  desktop?:boolean;
   floating?: boolean;
   localStream: MediaStream;
   style?: React.CSSProperties;
@@ -13,6 +14,7 @@ interface DeviceControlProps {
 }
 
 export default function DeviceControls({
+  desktop,
   floating,
   localStream,
   style,
@@ -28,20 +30,41 @@ export default function DeviceControls({
 
   let styles = {};
   if (floating) {
+    if(desktop){
     styles = {
       position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-    };
+      bottom: "100px",
+      left: "15%",
+      background:"yellow",
+      // justifyContent:"center",
+      // alignItems:"center",
+      // alignContent:"center",
+      borderRadius:"10px",
+      padding:"5px",
+      // right: 0,
+    };}
+    else
+    {
+      styles = {
+        width:"85px",
+        height:"40px",
+        padding:"2px",
+        position: "absolute",
+        // background:"orange",
+        borderRadius:"10px",
+        top: "110px",
+        // left: 0,
+        right: "2%",
+      };
+    }
   }
 
   return (
     <Box pb={"4"} {...styles} style={style}>
       {cameraTrack && videoAllowed && (
         <IconButton
-          colorScheme={!cameraTrack.enabled ? "red" : undefined}
-          size={"lg"}
+          colorScheme={!cameraTrack.enabled ? "red" : "blue"}
+          size={desktop?("lg"):("sm")}
           mr={"2"}
           aria-label="Camera"
           icon={<Icon as={cameraTrack.enabled ? FiVideo : FiVideoOff} />}
@@ -53,8 +76,8 @@ export default function DeviceControls({
       )}
       {microphoneTrack && audioAllowed &&(
         <IconButton
-          colorScheme={!microphoneTrack.enabled ? "red" : undefined}
-          size={"lg"}
+          colorScheme={!microphoneTrack.enabled ? "red" : "blue"}
+          size={desktop?("lg"):("sm")}
           aria-label="Microphone"
           icon={<Icon as={microphoneTrack.enabled ? FiMic : FiMicOff} />}
           onClick={() => {

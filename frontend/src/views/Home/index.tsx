@@ -9,15 +9,16 @@ import { useLocalMedia } from "@whereby.com/browser-sdk";
 
 interface HomeProps {
   // localMedia: LocalMediaRef;
+  desktop: boolean;
   displayName: string;
   roomUrl: string;
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-const isQuizMaster = !!urlParams.get("quizMaster");
+const isTeacher = !!urlParams.get("quizMaster");
 
 
-const Home = ({ displayName, roomUrl }: HomeProps) => { 
+const Home = ({ displayName, roomUrl, desktop }: HomeProps) => { 
 
   const localMedia = useLocalMedia({ audio: true, video: true });
 
@@ -93,27 +94,37 @@ const Home = ({ displayName, roomUrl }: HomeProps) => {
     
     //same as myPage style
     <Flex 
-        flexDirection="column"
+        flexDirection={desktop?("row"):("column")}
         w="100%" 
         height="98vh" 
         gap="10px"
-        alignItems="center"
+        alignItems="stretch"
+        justifyContent="flex-start"
     >
         {/* <Box flexGrow="2" p="4" background="whiteAlpha.500">
           <Peers roomConnection={roomConnection} isQuizMaster={isQuizMaster} myAudioIsOn={myAudioStatusChanged} AudioPermission={updateMyAudioPermission} VideoPermission={updateMyVideoPermission}/>
         </Box> */}
         
-        <Flex //same as top bar
+        {/* <Flex //same as top bar
             flexGrow="0" 
-            background="whiteAlpha.500"
+            background={desktop?("yellow"):("blue")}//"whiteAlpha.500"
             justifyContent="space-between"
             alignContent="center"
             alignItems="center"
-            width="98%"
-            height="150px"
-        >
-          <Peers roomConnection={roomConnection} isQuizMaster={isQuizMaster} myAudioIsOn={myAudioStatusChanged} AudioPermission={updateMyAudioPermission} VideoPermission={updateMyVideoPermission}/>
-        </Flex>
+            width={desktop?("20%"):("98%")}
+            height={desktop?("98%"):("150px")}
+            flexDirection={desktop?("column"):("row")}//
+        > */}
+          <Peers desktop={desktop} roomConnection={roomConnection} isTeacher={isTeacher} myAudioIsOn={myAudioStatusChanged} AudioPermission={updateMyAudioPermission} VideoPermission={updateMyVideoPermission}/>
+
+          {/* <Flex
+            flexGrow="0"
+            background="orange"
+            width={desktop?("100%"):("20%")}
+            height={desktop?("20%"):("100%")}
+            ></Flex>
+        
+        </Flex> */}
       {/* )} */}
       <Center>
         {localStream && (

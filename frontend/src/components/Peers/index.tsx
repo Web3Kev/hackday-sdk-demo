@@ -5,11 +5,13 @@ import { motion, AnimatePresence, usePresence } from "framer-motion";
 
 import useComControl,{ RoomConnectionRef, ComState, LocalMediaRef } from "../../communication";
 import VideoTile from "../VideoTile";
+import CircleVideo from "../Circle";
 
 interface PeersProps {
+  desktop: boolean;
   roomConnection: RoomConnectionRef;
   myAudioIsOn:boolean;
-  isQuizMaster?:boolean;
+  isTeacher?:boolean;
   variant?: "default" | "small";
   screen?: "scoreboard" | "game"; // delete this
   AudioPermission: (boolean) => void; //make this resurface in Home
@@ -19,8 +21,9 @@ interface PeersProps {
 const SORTING_TIMEOUT = 4500;
 
 const Peers = ({
+  desktop,
   roomConnection,
-  isQuizMaster = false,
+  isTeacher = false,
   myAudioIsOn,
   variant = "default",
   screen = "game",  // delete this
@@ -66,9 +69,9 @@ const Peers = ({
   //pass this to useQuiGame logic
   const { state: comState, actions: comActions } = useComControl(
     roomConnection,
-    { isQuizMaster }
+    { isTeacher }
   );
-
+//here
     //states get
   const { videoNotAllowedIds, audioNotAllowedIds, spotLitIds,currentIframe } = comState;
     //actions set
@@ -194,17 +197,17 @@ const Peers = ({
 
   //string array of videos to force disable
   useEffect(() => {
-    if(isQuizMaster){disableVideo(videoIdPermission);}
+    if(isTeacher){disableVideo(videoIdPermission);}
   }, [videoIdPermission]); 
 
   //string array of audios to force disable
   useEffect(() => {
-    if(isQuizMaster){disableAudio(audioIdPermission);}
+    if(isTeacher){disableAudio(audioIdPermission);}
   }, [audioIdPermission]); 
 
   //string array of videos set in spotlight
   useEffect(() => {
-    if(isQuizMaster){setSpotlight(spotLightIds);}
+    if(isTeacher){setSpotlight(spotLightIds);}
   }, [spotLightIds]); 
 
   //------------END of FOR ADMIN ONLY ----------//
@@ -256,53 +259,123 @@ const Peers = ({
    
     // </Box>
 
-    <Flex 
-        //same topbar child common
+    <Flex //same as top bar
+        flexGrow="0" 
+        background={desktop?("yellow"):("blue")}//"whiteAlpha.500"
+        justifyContent="space-between"
+        alignContent="center"
         alignItems="center"
-        justifyContent="center"
-        height="100%"
-        position="relative"
+        width={desktop?("40%"):("98%")}
+        height={desktop?("98%"):("150px")}
+        flexDirection={desktop?("column-reverse"):("row")}//
+    >
+        <Flex 
+            //same topbar child common
+            alignItems="center"
+            justifyContent="center"
+            height={desktop?("20%"):("100%")}
+            position="relative"
 
-        //same as grid container
-        paddingLeft="5%"
+            //same as grid container
+            paddingLeft="5%"
+            borderRadius="1%"
+            width={desktop?("100%"):("20%")}
+            flexGrow="1"
+            background="pink"
+        > 
+      {/* <Grid //allpeople grid
         borderRadius="1%"
-        width="20%"
-        flexGrow="1"
-    > 
-      <Grid //allpeople grid
-        borderRadius="1%"
-      >
-        <AnimatePresence mode="sync">
-          {tiles.map((participant) => {
-            if (!participant) return null;
+      > */}
+            <AnimatePresence mode="sync">
+            <Box
+                  display="grid"
+                  gridTemplateColumns="1fr 1fr 1fr"
+                  gridTemplateRows="1fr 1fr 1fr"
+                  gap="4"
+                  // justifyContent="cemnt"
+                  alignItems="center"
+                  // alignContent="center"
+                  marginRight="20px"
+                >
+            {tiles.map((participant) => {
+                if (!participant) return null;
 
-            const { id, stream, displayName, isAudioEnabled } = participant;
-            // const hasParticipantAnswered = !!(currentAnswers || {})[id];
-            console.log("my audio is "+myAudioIsOn);
-            return (
-              <motion.div {...animationProps} key={id}>
-                <VideoTile
-                  muted={localParticipant?.id === id}
-                  showMuted={localParticipant ? (localParticipant.id === id ? !myAudioIsOn : !isAudioEnabled) : false} //if person is muted  
-                  id={id}
-                  stream={stream}
-                  name={displayName}
-                  roundResult={roundResults[id]}
-                  variant={tileSizeVariant}
-                  isMaster={isQuizMaster}
-                  hasAnswered = {spotLitIds? spotLitIds.includes(id):false} //use this just for now
-                  audioAllowed={isQuizMaster ? !audioIdPermission.includes(id) : undefined}
-                  videoAllowed={isQuizMaster ? !videoIdPermission.includes(id) : undefined}
-                  spotlit={isQuizMaster ? spotLightIds.includes(id) : undefined}
-                  changeAudioPermission={updatePermittedAudios} //admin stuff
-                  changeVideoPermission={updatePermittedVideos} //admin stuff
-                  changeSpotlightStatus={updateSpotlights} //admin stuff
-                />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </Grid>
+                const { id, stream, displayName, isAudioEnabled } = participant;
+                // const hasParticipantAnswered = !!(currentAnswers || {})[id];
+                
+                // if(localParticipant?.id != id) 
+                return (
+                <motion.div {...animationProps} key={id}>
+               
+                    <CircleVideo
+                    muted={localParticipant?.id === id}
+                    showMuted={localParticipant ? (localParticipant.id === id ? !myAudioIsOn : !isAudioEnabled) : false} //if person is muted  
+                    id={id}
+                    stream={stream}
+                    name={displayName}
+                    // roundResult={roundResults[id]}
+                    // variant={tileSizeVariant}
+                    isMaster={isTeacher}
+                    inTheSpotlight = {spotLitIds? spotLitIds.includes(id):false} //use this just for now
+                    audioAllowed={isTeacher ? !audioIdPermission.includes(id) : undefined}
+                    videoAllowed={isTeacher ? !videoIdPermission.includes(id) : undefined}
+                    spotlit={isTeacher ? spotLightIds.includes(id) : undefined}
+                    changeAudioPermission={updatePermittedAudios} //admin stuff
+                    changeVideoPermission={updatePermittedVideos} //admin stuff
+                    changeSpotlightStatus={updateSpotlights} //admin stuff
+                    />
+                </motion.div>
+    
+                );
+            })}
+            </Box>
+            </AnimatePresence>
+      {/* </Grid> */}
+        </Flex>
+
+        {/* <Flex
+            //same topbar child common
+            alignItems="center"
+            justifyContent="center"
+            height={desktop?("20%"):("100%")}
+            position="relative"
+            
+            flexGrow="0"
+            background="orange"
+            width={desktop?("100%"):("20%")}
+        >
+            <AnimatePresence mode="sync">
+            {tiles.map((participant) => {
+                if (!participant) return null;
+
+                const { id, stream, displayName, isAudioEnabled } = participant;
+                // const hasParticipantAnswered = !!(currentAnswers || {})[id];
+                if(localParticipant?.id === id) return (
+                <motion.div {...animationProps} key={id}>
+                    <CircleVideo
+                    desktop={desktop}
+                    muted={localParticipant?.id === id}
+                    showMuted={localParticipant ? (localParticipant.id === id ? !myAudioIsOn : !isAudioEnabled) : false} //if person is muted  
+                    id={id}
+                    stream={stream}
+                    name={"you"}
+                    // roundResult={roundResults[id]}
+                    // variant={tileSizeVariant}
+                    isMaster={isQuizMaster}
+                    inTheSpotlight = {spotLitIds? spotLitIds.includes(id):false} //use this just for now
+                    audioAllowed={isQuizMaster ? !audioIdPermission.includes(id) : undefined}
+                    videoAllowed={isQuizMaster ? !videoIdPermission.includes(id) : undefined}
+                    spotlit={isQuizMaster ? spotLightIds.includes(id) : undefined}
+                    changeAudioPermission={updatePermittedAudios} //admin stuff
+                    changeVideoPermission={updatePermittedVideos} //admin stuff
+                    changeSpotlightStatus={updateSpotlights} //admin stuff
+                    />
+                </motion.div>
+                );
+            })}
+            </AnimatePresence>
+        </Flex> */}
+        
     </Flex>
   );
 };
